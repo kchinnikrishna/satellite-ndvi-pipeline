@@ -17,13 +17,7 @@ ENV C_INCLUDE_PATH=/usr/include/gdal
 
 # Install Python deps
 WORKDIR /app
-COPY data_ingestion/requirements.txt . # If we had one, but we don't yet.
-# Manual install for now or create requirements.txt
-# Let's just install directly for simplicity in this generated file, 
-# or better, create a requirements file in the previous steps? 
-# I'll just install with pip here to be self-contained for the subagent, 
-# but best practice is requirements.txt. 
-# I will stick to inline installation for the "common" packages defined in user request.
+
 RUN pip install --no-cache-dir \
     fastapi \
     uvicorn[standard] \
