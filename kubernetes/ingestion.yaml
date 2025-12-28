@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ndvi-ingestion
+  namespace: satellite-ndvi
+spec:
+  schedule: "0 */6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: ingestion
+            image: registry/satellite-ndvi-ingestion:latest
+            imagePullPolicy: IfNotPresent
+            envFrom:
+              - configMapRef:
+                  name: ndvi-config
+              - secretRef:
+                  name: ndvi-secrets
+            volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+          restartPolicy: OnFailure
+          volumes:
+          - name: data-volume
+            persistentVolumeClaim:
+              claimName: ndvi-data-pvc # Shared PVC needed

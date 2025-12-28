@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ndvi-api
+  namespace: satellite-ndvi
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ndvi-api
+  template:
+    metadata:
+      labels:
+        app: ndvi-api
+    spec:
+      containers:
+      - name: api
+        image: registry/satellite-ndvi-api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        envFrom:
+          - configMapRef:
+              name: ndvi-config
+          - secretRef:
+              name: ndvi-secrets
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: ndvi-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ndvi-api
+  namespace: satellite-ndvi
+spec:
+  type: LoadBalancer # Or ClusterIP + Ingress
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: ndvi-api

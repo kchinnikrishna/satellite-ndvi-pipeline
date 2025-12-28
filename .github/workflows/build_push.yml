@@ -1,0 +1,60 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: docker.io
+  # Replace with your actual registry/user
+  IMAGE_NAME_INGESTION: satellite-ndvi-ingestion
+  IMAGE_NAME_PROCESSING: satellite-ndvi-processor
+  IMAGE_NAME_API: satellite-ndvi-api
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Ingestion
+      - name: Build and push Ingestion
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./data_ingestion/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_INGESTION }}:latest
+
+      # Processing
+      - name: Build and push Processing
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./ndvi_processing/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_PROCESSING }}:latest
+
+      # API
+      - name: Build and push API
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./api_gateway/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME_API }}:latest

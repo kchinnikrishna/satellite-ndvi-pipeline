@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ndvi-db
+  namespace: satellite-ndvi
+spec:
+  serviceName: "ndvi-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ndvi-db
+  template:
+    metadata:
+      labels:
+        app: ndvi-db
+    spec:
+      containers:
+      - name: time-series-db
+        image: postgis/postgis:16-3.4
+        ports:
+        - containerPort: 5432
+        envFrom:
+          - configMapRef:
+              name: ndvi-config
+          - secretRef:
+              name: ndvi-secrets
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        # Mount init script
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: db-init-script-cm # Need to make this CM or bake into image
+  volumeClaimTemplates:
+  - metadata:
+    name: postgres-data
+  spec:
+    accessModes: [ "ReadWriteOnce" ]
+    resources:
+      requests:
+        storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ndvi-db
+  namespace: satellite-ndvi
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: ndvi-db
+  clusterIP: None

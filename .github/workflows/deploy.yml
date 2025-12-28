@@ -1,0 +1,42 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure Kubernetes Context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy Manifests
+        run: |
+          kubectl apply -f kubernetes/configmap.yaml
+          kubectl apply -f kubernetes/secret.yaml
+          kubectl apply -f kubernetes/postgres.yaml
+          kubectl apply -f kubernetes/ingestion.yaml
+          kubectl apply -f kubernetes/processing.yaml
+          kubectl apply -f kubernetes/api.yaml
+          kubectl apply -f kubernetes/monitoring.yaml
+          
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/ndvi-api -n satellite-ndvi
