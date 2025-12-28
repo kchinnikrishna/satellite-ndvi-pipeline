@@ -8,7 +8,9 @@ RUN apt-get update && apt-get install -y \
     libgdal-dev \
     python3-gdal \
     libpq-dev \
-    gcc \
+    libpq-dev \
+    build-essential \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set env vars for GDAL
