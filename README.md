@@ -1,72 +1,125 @@
-# Satellite NDVI Pipeline
+# 🛰️ Satellite NDVI Pipeline
 
-An end-to-end cloud-native system that downloads Sentinel-2 imagery, computes NDVI (Normalized Difference Vegetation Index), stores results in PostGIS, and exposes them via FastAPI. Geared for deployment on Kubernetes.
+![Build Status](https://github.com/kchinnikrishna/satellite-ndvi-pipeline/actions/workflows/build_push.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326ce5.svg)
 
-## Features
-- **Automated Ingestion**: Fetches Sentinel-2 imagery using Sentinel Hub / GEE.
-- **Geospatial Processing**: Computes NDVI, generates color previews, and calculates vector statistics (mean, histogram).
-- **Spatial Database**: Stores metadata and results in PostGIS.
-- **API Gateway**: REST API to query tiles and statistics.
-- **Observability**: Prometheus & Grafana stack for monitoring.
-- **GitOps Ready**: Kubernetes manifests and CI/CD workflows included.
+An end-to-end cloud-native system that transforms Sentinel-2 satellite imagery into vegetation health insights (NDVI). Designed for scalability using Microservices, Docker, and Kubernetes.
 
-## Architecture
+## 🌟 Features
+
+*   **Managed Ingestion**: Automatically searches and downloads Sentinel-2 imagery via Sentinel Hub / Google Earth Engine.
+*   **Geospatial Processing Engine**: High-performance NDVI calculation using `rasterio` and `numpy`.
+    *   Generates False-Color and NDVI colorized previews.
+    *   Computes zonal statistics (min, max, mean, histograms).
+*   **Spatial Database**: leverages **PostGIS** for efficient spatial queries and metadata storage.
+*   **Modern API**: **FastAPI** gateway exposing REST endpoints for tiles and analytics.
+*   **Observability**: Full monitoring stack with **Prometheus** metrics and **Grafana** dashboards.
+*   **GitOps Ready**: Comprehensive **Kubernetes** manifests and **GitHub Actions** CI/CD pipelines.
+
+## 🏗️ Architecture
+
+The system is composed of loose coupled microservices:
 
 ```mermaid
 graph TD
-    A[Sentinel Hub API] -->|Download| B(Data Ingestion Service)
-    B -->|GeoTIFF| C{PostGIS DB}
-    D[NDVI Processing Service] -->|Poll| C
-    D -->|Compute NDVI| E[Processed Store]
-    D -->|Update Meta| C
-    F[API Gateway] -->|Query| C
-    F -->|Serve| E
-    G[User] -->|REST| F
-    H[Prometheus] -->|Scrape| F
+    A[Sentinel Hub/GEE] -->|Download| B(Data Ingestion Service)
+    B -->|Meta| C{PostGIS DB}
+    B -->|Raw TIFF| V[Shared Volume]
+    
+    D[NDVI Processor] -->|Poll| C
+    D -->|Read| V
+    D -->|Compute| V
+    D -->|Update Status| C
+    
+    E[API Gateway] -->|Query| C
+    E -->|Serve Images| V
+    
+    U[User] -->|REST Request| E
+    
+    M[Prometheus] -->|Scrape Metrics| E
+    G[Grafana] -->|Visualize| M
 ```
 
-## Quick Start (Local Docker Compose)
+## 📂 Project Structure
 
-1.  **Clone the repository**:
+```
+satellite-ndvi-pipeline/
+├── api_gateway/        # FastAPI application
+├── data_ingestion/     # Sentinel download logic
+├── ndvi_processing/    # Image processing worker
+├── database/           # SQL init scripts
+├── kubernetes/         # K8s Manifests (Deployments, Services)
+├── monitoring/         # Prometheus & Grafana config
+├── shared/             # Common DB models and utils
+├── tests/              # Unit tests
+├── docker-compose.yml  # Local dev orchestration
+└── .github/workflows/  # CI/CD pipelines
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+*   Docker & Docker Compose
+*   Sentinel Hub Account (Client ID & Secret)
+
+### Local Development
+
+1.  **Clone the Repo**
     ```bash
     git clone https://github.com/kchinnikrishna/satellite-ndvi-pipeline.git
     cd satellite-ndvi-pipeline
     ```
 
-2.  **Configure Environment**:
-    Copy `.env.example` to `.env` and fill in your credentials.
+2.  **Environment Setup**
     ```bash
     cp .env.example .env
-    # Edit .env with your SENTINEL_HUB creds
+    # Open .env and add your SH_CLIENT_ID and SH_CLIENT_SECRET
     ```
 
-3.  **Run with Docker Compose**:
+3.  **Run with Docker Compose**
     ```bash
     docker compose up --build -d
     ```
 
-4.  **Access Services**:
-    - **API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-    - **Database**: Port `5432`
+4.  **Explore**
+    *   **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+    *   **Database**: `localhost:5432` (User: `user`, Pass: `password`, DB: `ndvi_db`)
+    *   **Grafana**: [http://localhost:3000](http://localhost:3000) (Default user/pass: `admin`/`admin`)
 
-## Deployment (Kubernetes)
+## ☸️ Kubernetes Deployment
 
-1.  **Secrets**:
-    Update `kubernetes/secret.yaml` with your base64 encoded credentials.
+1.  **Configure Secrets**
+    Edit `kubernetes/secret.yaml` with your base64-encoded credentials.
 
-2.  **Deploy**:
+2.  **Deploy Manifests**
     ```bash
     kubectl apply -f kubernetes/
     ```
 
-3.  **Monitor**:
-    - **Prometheus**: Port 9090
-    - **Grafana**: Port 3000
+3.  **Verify**
+    ```bash
+    kubectl get pods -n satellite-ndvi
+    ```
 
-## Development
+## 🛠️ Tech Stack
 
-- **Tests**: Run unit tests with `python -m unittest discover tests`.
-- **Lint**: Uses `flake8`.
+*   **Language**: Python 3.11
+*   **Web Framework**: FastAPI
+*   **Data Processing**: Rasterio, NumPy, GDAL
+*   **Database**: PostgreSQL 16 + PostGIS 3.4
+*   **Infrastructure**: Docker, Kubernetes
+*   **Monitoring**: Prometheus, Grafana
 
-## License
-MIT
+## 🤝 Contributing
+
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
+3.  Commit your changes (`git commit -m 'Add amazing feature'`).
+4.  Push to the branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
