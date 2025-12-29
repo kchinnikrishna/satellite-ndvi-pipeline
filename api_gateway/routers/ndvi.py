@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 
 # Internal imports
 from shared.database import get_db
@@ -21,9 +21,9 @@ router = APIRouter(
 
 @router.get("/tiles", response_model=List[NDVIRasterResponse])
 def get_ndvi_tiles(
-    bbox: str = Query(..., description="BBox as 'minx,miny,maxx,maxy'"),
-    start_date: datetime = Query(None),
-    end_date: datetime = Query(None),
+    bbox: str = Query(..., description="BBox as 'minx,miny,maxx,maxy'", example="-122.51,37.71,-122.35,37.81"),
+    start_date: Optional[date] = Query(None, description="Start Date (YYYY-MM-DD)", example="2023-01-01"),
+    end_date: Optional[date] = Query(None, description="End Date (YYYY-MM-DD)", example="2023-01-31"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -64,8 +64,8 @@ def get_ndvi_tiles(
 
 @router.get("/statistics", response_model=List[NDVIStatisticsResponse])
 def get_statistics(
-    start_date: datetime = Query(None),
-    end_date: datetime = Query(None),
+    start_date: Optional[date] = Query(None, example="2023-01-01"),
+    end_date: Optional[date] = Query(None, example="2023-01-31"),
     db: Session = Depends(get_db)
 ):
     # Retrieve all pre-calculated stats inside the time range
