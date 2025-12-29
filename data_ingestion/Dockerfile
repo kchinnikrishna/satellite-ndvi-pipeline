@@ -27,6 +27,7 @@ RUN pip install --no-cache-dir \
     gdal==$(gdal-config --version) \
     numpy \
     psycopg2-binary \
+    shapely \
     sqlalchemy \
     geoalchemy2 \
     requests \
