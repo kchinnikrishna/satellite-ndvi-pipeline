@@ -18,7 +18,7 @@ spec:
       containers:
       - name: processor
         image: chinnikrishnak02/satellite-ndvi-processor:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         envFrom:
           - configMapRef:
               name: ndvi-config

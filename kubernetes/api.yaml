@@ -18,7 +18,7 @@ spec:
       containers:
       - name: api
         image: chinnikrishnak02/satellite-ndvi-api:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         envFrom:

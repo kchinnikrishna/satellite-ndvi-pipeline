@@ -14,7 +14,7 @@ spec:
           containers:
           - name: ingestion
             image: chinnikrishnak02/satellite-ndvi-ingestion:latest
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
             envFrom:
               - configMapRef:
                   name: ndvi-config
