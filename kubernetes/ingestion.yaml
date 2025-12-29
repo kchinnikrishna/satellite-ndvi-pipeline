@@ -9,9 +9,11 @@ spec:
     spec:
       template:
         spec:
+          imagePullSecrets:
+          - name: regcred
           containers:
           - name: ingestion
-            image: registry/satellite-ndvi-ingestion:latest
+            image: chinnikrishnak02/satellite-ndvi-ingestion:latest
             imagePullPolicy: IfNotPresent
             envFrom:
               - configMapRef:

@@ -13,9 +13,11 @@ spec:
       labels:
         app: ndvi-processing
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: processor
-        image: registry/satellite-ndvi-processor:latest
+        image: chinnikrishnak02/satellite-ndvi-processor:latest
         imagePullPolicy: IfNotPresent
         envFrom:
           - configMapRef:

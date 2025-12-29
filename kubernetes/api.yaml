@@ -13,9 +13,11 @@ spec:
       labels:
         app: ndvi-api
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - name: api
-        image: registry/satellite-ndvi-api:latest
+        image: chinnikrishnak02/satellite-ndvi-api:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000

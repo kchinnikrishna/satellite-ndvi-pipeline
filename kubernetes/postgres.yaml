@@ -36,12 +36,12 @@ spec:
             name: db-init-script-cm # Need to make this CM or bake into image
   volumeClaimTemplates:
   - metadata:
-    name: postgres-data
-  spec:
-    accessModes: [ "ReadWriteOnce" ]
-    resources:
-      requests:
-        storage: 10Gi
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
